@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>விவசாய குரல் உதவியாளர்</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: url('quote_bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            margin-top: 50px;
+        }
+        .chat-area {
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        .user-message {
+            background: rgba(0, 123, 255, 0.3);
+            margin-left: auto;
+        }
+        .bot-message {
+            background: rgba(40, 167, 69, 0.3);
+            margin-right: auto;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        .btn-voice {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #28a745;
+            border: none;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-voice:hover {
+            transform: scale(1.1);
+            background: #218838;
+        }
+        .btn-voice.listening {
+            animation: pulse 1.5s infinite;
+            background: #dc3545;
+        }
+        .visualizer {
+            height: 60px;
+            width: 100%;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        .bar {
+            width: 4px;
+            height: 20px;
+            background: #28a745;
+            border-radius: 2px;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+            justify-content: center;
+        }
+        .chip {
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .chip:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(40, 167, 69, 0.7);
+            border-radius: 5px;
+            margin: 10px;
+            display: inline-block;
+        }
+        .nav-link:hover {
+            background: rgba(40, 167, 69, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: right; margin-bottom: 20px;">
+            <a href="disease.html" class="nav-link">
+                <i class="fas fa-leaf"></i> நோய் கண்டறிதல்
+            </a>
+        </div>
+        <h1 class="text-center mb-4">விவசாய குரல் உதவியாளர்</h1>
+        <div class="chat-area" id="chatArea"></div>
+        <div class="visualizer" id="visualizer">
+            <!-- Bars will be added dynamically -->
+        </div>
+        <div class="suggestion-chips" id="suggestionChips"></div>
+        <div class="controls">
+            <button id="voiceButton" class="btn-voice">
+                <i class="fas fa-microphone"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=fehZfUdp"></script>
+    <script>
+        // Initialize variables
+        let recognition;
+        let isListening = false;
+        let audioContext;
+        let analyser;
+        let dataArray;
+        let source;
+        let animationFrame;
+        const bars = 40;
+
+        // Suggestion chips data
+        const suggestionChips = [
+            "நெல் சாகுபடி முறைகள்",
+            "கரும்பு நோய்கள்",
+            "பருத்தி பயிர் பராமரிப்பு",
+            "உர மேலாண்மை",
+            "நீர் பாசனம்",
+            "பூச்சி கட்டுப்பாடு"
+        ];
+
+        // Initialize the page
+        window.onload = function() {
+            setupVisualizer();
+            setupSpeechRecognition();
+            displaySuggestionChips();
+            addMessage("bot", "வணக்கம்! நான் உங்கள் விவசாய உதவியாளர். உங்கள் கேள்விகளை கேளுங்கள்.");
+        };
+
+        // Setup audio visualizer
+        function setupVisualizer() {
+            const visualizer = document.getElementById('visualizer');
+            for (let i = 0; i < bars; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                visualizer.appendChild(bar);
+            }
+        }
+
+        // Setup speech recognition
+        function setupSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'ta-IN';
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('voiceButton').classList.add('listening');
+                    startAudioVisualization();
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    document.getElementById('voiceButton').classList.remove('listening');
+                    stopAudioVisualization();
+                };
+
+                recognition.onresult = (event) => {
+                    const result = event.results[0][0].transcript;
+                    if (event.results[0].isFinal) {
+                        addMessage("user", result);
+                        processQuery(result);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    addMessage("bot", "மன்னிக்கவும், கேட்பதில் சிக்கல் ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.");
+                    stopListening();
+                };
+            } else {
+                console.error('Speech recognition not supported');
+                addMessage("bot", "மன்னிக்கவும், உங்கள் உலாவி குரல் அங்கீகாரத்தை ஆதரிக்கவில்லை.");
+            }
+        }
+
+        // Display suggestion chips
+        function displaySuggestionChips() {
+            const chipsContainer = document.getElementById("suggestionChips");
+            chipsContainer.innerHTML = suggestionChips.map(chip => 
+                `<div class="chip" onclick="useChip('${chip}')">${chip}</div>`
+            ).join('');
+        }
+
+        // Use suggestion chip
+        function useChip(text) {
+            addMessage("user", text);
+            processQuery(text);
+        }
+
+        // Add message to chat
+        function addMessage(type, text) {
+            const chatArea = document.getElementById("chatArea");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.innerText = text;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Process query using chatbot API
+        async function processQuery(query) {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: query })
+                });
+
+                if (!response.ok) {
+                    throw new Error('சேவையகத்துடன் தொடர்பு கொள்ள முடியவில்லை');
+                }
+
+                const data = await response.json();
+                if (data.confidence < 0.5) {
+                    throw new Error('கேள்விக்கான பதில் கிடைக்கவில்லை');
+                }
+                const botResponse = data.response;
+                addMessage("bot", botResponse);
+                speakResponse(botResponse);
+
+            } catch (error) {
+                console.error('Error:', error);
+                const errorMessage = "மன்னிக்கவும், " + error.message;
+                addMessage("bot", errorMessage);
+                speakResponse(errorMessage);
+            }
+        }
+
+        // Text to speech
+        function speakResponse(text) {
+            if (responsiveVoice) {
+                responsiveVoice.speak(text, "Tamil Male", {
+                    pitch: 1,
+                    rate: 0.9,
+                    volume: 1
+                });
+            }
+        }
+
+        // Toggle listening
+        function toggleListening() {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        }
+
+        // Start listening
+        function startListening() {
+            if (recognition) {
+                recognition.start();
+            }
+        }
+
+        // Stop listening
+        function stopListening() {
+            if (recognition) {
+                recognition.stop();
+            }
+        }
+
+        // Audio visualization
+        function startAudioVisualization() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        source = audioContext.createMediaStreamSource(stream);
+                        source.connect(analyser);
+                        analyser.fftSize = 256;
+                        dataArray = new Uint8Array(analyser.frequencyBinCount);
+                        updateVisualizer();
+                    })
+                    .catch(error => console.error('Error accessing microphone:', error));
+            }
+        }
+
+        // Stop audio visualization
+        function stopAudioVisualization() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            if (source) {
+                source.disconnect();
+            }
+            resetVisualizer();
+        }
+
+        // Update visualizer
+        function updateVisualizer() {
+            if (!isListening) return;
+            analyser.getByteFrequencyData(dataArray);
+            const bars = document.querySelectorAll('.bar');
+            const step = Math.floor(dataArray.length / bars.length);
+            
+            for (let i = 0; i < bars.length; i++) {
+                const value = dataArray[i * step];
+                const height = Math.max(2, value / 2);
+                bars[i].style.height = `${height}px`;
+            }
+            
+            animationFrame = requestAnimationFrame(updateVisualizer);
+        }
+
+        // Reset visualizer
+        function resetVisualizer() {
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach(bar => bar.style.height = '20px');
+        }
+
+        // Event listeners
+        document.getElementById('voiceButton').addEventListener('click', toggleListening);
+    </script>
+</body>
+</html>

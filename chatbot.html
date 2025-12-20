@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>அக்ரோ சாட்பாட்</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>அக்ரோ சாட்பாட்</h1>
+        <p>உங்களுக்கு எந்த தகவல் தேவை?</p>
+        <button onclick="sendMessage('எந்த பயிர் நல்லது?')">எந்த பயிர் நல்லது?</button>
+        <button onclick="sendMessage('நோய் தடுப்புக்கு என்ன செய்யலாம்?')">நோய் தடுப்புக்கு?</button>
+        <button onclick="sendMessage('எந்த உரம் பயன்படுத்தலாம்?')">எந்த உரம்?</button>
+        <p id="response"></p>
+    </div>
+    <script>
+        function sendMessage(question) {
+            const responses = {
+                "எந்த பயிர் நல்லது?": "உங்கள் நிலத்தின் வகைக்கு ஏற்ப பயிரை தேர்வு செய்யலாம்.",
+                "நோய் தடுப்புக்கு என்ன செய்யலாம்?": "நோய்கள் வராமல் தடுக்க உரத்தன்மை பாதுகாக்கவும்.",
+                "எந்த உரம் பயன்படுத்தலாம்?": "உரங்களை மிதமான அளவில் பயன்படுத்தவும்."
+            };
+            document.getElementById("response").innerText = responses[question] || "மன்னிக்கவும், பதில் இல்லை.";
+        }
+    </script>
+</body>
+</html>

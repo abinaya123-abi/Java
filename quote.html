@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>தினம் ஒரு பொன்மொழி</title>
+    <style>
+        body {
+            background: url('quote_bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            padding-top: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+        }
+        h1 {
+            font-size: 2rem;
+        }
+        .quote-box {
+            font-size: 1.5rem;
+            margin: 20px auto;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            color: white;
+            background: orange;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: darkorange;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📜 தினம் ஒரு பொன்மொழி 📜</h1>
+        <p id="quote" class="quote-box">"உழைத்தால் உயர்வு கட்டாயம்!"</p>
+        <button onclick="newQuote()">புதிய பொன்மொழி பெறுக</button>
+    </div>
+
+    <script>
+        function newQuote() {
+            var quotes = [
+                "உழைத்தால் உயர்வு கட்டாயம்!",
+                "விதைத்த பயிரை நம்புங்கள்!",
+                "கடின உழைப்பே வெற்றியின் ரகசியம்!",
+                "முன்னேற முயற்சி செய்!",
+                "நம்பிக்கை இல்லாமல் வெற்றி இல்லை!",
+                "உழைப்பால் மட்டுமே உன்னதம் அடையலாம்!",
+                "தோல்வி என்பது வெற்றிக்கான முதல் படியாகும்!",
+                "நம்பிக்கை கொண்டால் பயணம் எளிதாகும்!",
+                "கண்ணியமாக உழைத்து உயர்ந்திடு!",
+                "தீவிர முயற்சி செய்தால் எதையும் சாதிக்கலாம்!"
+            ];
+            
+            var randomIndex = Math.floor(Math.random() * quotes.length);
+            document.getElementById("quote").innerText = quotes[randomIndex];
+        }
+    </script>
+</body>
+</html>
