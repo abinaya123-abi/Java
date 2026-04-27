@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - RecuroAI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        .admin-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-info h1 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header-info p {
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .admin-tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-box {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            width: 250px;
+        }
+
+        .filter-select {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: white;
+        }
+
+        .table-content {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--secondary-color);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-flagged {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-suspended {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-approve {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-reject {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-review {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-sm:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .user-detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .user-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-section {
+            background: var(--secondary-color);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .info-section h4 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .subscription-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .subscription-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            background: white;
+        }
+
+        .export-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .export-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .export-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .alert-banner {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-icon {
+            color: #f59e0b;
+        }
+
+        @media (max-width: 768px) {
+            .admin-dashboard {
+                padding: 1rem;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .admin-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-dashboard">
+        <header class="dashboard-header">
+            <div class="header-info">
+                <h1>RecuroAI Admin Dashboard</h1>
+                <p>Manage client subscriptions and oversee platform operations</p>
+                <div style="margin-top: 0.5rem;">
+                    <small style="color: var(--text-secondary); background: #f0f9ff; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                        <i data-feather="shield" style="width: 12px; height: 12px;"></i> 
+                        Authenticated Session - Auto-logout in 4 hours
+                    </small>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="refreshDashboard()">
+                    <i data-feather="refresh-cw"></i> Refresh
+                </button>
+                <button class="btn btn-primary" onclick="showExportPanel()">
+                    <i data-feather="download"></i> Export Data
+                </button>
+            </div>
+        </header>
+
+        <div class="alert-banner" id="alert-banner" style="display: none;">
+            <i data-feather="alert-triangle" class="alert-icon"></i>
+            <span id="alert-message"></span>
+        </div>
+
+        <div class="admin-tabs">
+            <button class="tab-btn active" onclick="switchTab('overview')">
+                <i data-feather="home"></i> Overview
+            </button>
+            <button class="tab-btn" onclick="switchTab('flagged-users')">
+                <i data-feather="flag"></i> Flagged Users
+            </button>
+            <button class="tab-btn" onclick="switchTab('subscription-approvals')">
+                <i data-feather="check-circle"></i> Approvals
+            </button>
+            <button class="tab-btn" onclick="switchTab('client-data')">
+                <i data-feather="users"></i> Client Data
+            </button>
+            <button class="tab-btn" onclick="switchTab('audit-exports')">
+                <i data-feather="file-text"></i> Exports
+            </button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div class="tab-panel active" id="overview-panel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">1,247</div>
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-change positive">+12% this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">23</div>
+                    <div class="stat-label">Flagged Users</div>
+                    <div class="stat-change negative">+3 this week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">156</div>
+                    <div class="stat-label">Pending Approvals</div>
+                    <div class="stat-change">Awaiting review</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">$847K</div>
+                    <div class="stat-label">Total Savings Identified</div>
+                    <div class="stat-change positive">+18% this quarter</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flagged Users Tab -->
+        <div class="tab-panel" id="flagged-users-panel">
+            <div class="data-table">
+                <div class="table-header">
+                    <h3>Flagged Users</h3>
+                    <div class="table-controls">
+                        <input type="text" class="search-box" placeholder="Search users..." id="user-search">
+                        <select class="filter-select" id="flag-filter">
+                            <option value="all">All Flags</option>
+                            <option value="suspicious-usage">Suspicious Usage</option>
+                            <option value="plan-abuse">Plan Abuse</option>
+                            <option value="fake-data">Fake Data</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-content" id="flagged-users-list">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Approvals Tab -->
+        <div class="tab-panel" id="subscription-approvals-panel">
+            <div class="data-table">
+                <div class="table-header">
+                    <h3>Subscription Approvals</h3>
+                    <div class="table-controls">
+                        <select class="filter-select" id="approval-filter">
+                            <option value="pending">Pending Review</option>
+                            <option value="all">All Requests</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-content">
+                    <table id="approvals-table">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Tool</th>
+                                <th>Cost Impact</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Table content will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Data Tab -->
+        <div class="tab-panel" id="client-data-panel">
+            <div class="data-table">
+                <div class="table-header">
+                    <h3>Client Subscription Data</h3>
+                    <div class="table-controls">
+                        <input type="text" class="search-box" placeholder="Search companies..." id="company-search">
+                        <select class="filter-select" id="plan-filter">
+                            <option value="all">All Plans</option>
+                            <option value="free">Free</option>
+                            <option value="pro">Pro</option>
+                            <option value="enterprise">Enterprise</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-content">
+                    <table id="client-data-table">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Plan</th>
+                                <th>Users</th>
+                                <th>Audits Used</th>
+                                <th>Total Savings</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Table content will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Exports Tab -->
+        <div class="tab-panel" id="audit-exports-panel">
+            <div class="export-section">
+                <h3>Export Audit Results</h3>
+                <div class="export-options">
+                    <div class="export-card" onclick="exportData('flagged-users')">
+                        <i data-feather="flag" style="color: #ef4444; margin-bottom: 1rem;"></i>
+                        <h4>Flagged Users Report</h4>
+                        <p>Export list of flagged users with risk analysis</p>
+                    </div>
+                    <div class="export-card" onclick="exportData('client-summary')">
+                        <i data-feather="users" style="color: #3b82f6; margin-bottom: 1rem;"></i>
+                        <h4>Client Summary</h4>
+                        <p>Comprehensive client data and usage statistics</p>
+                    </div>
+                    <div class="export-card" onclick="exportData('savings-report')">
+                        <i data-feather="dollar-sign" style="color: #10b981; margin-bottom: 1rem;"></i>
+                        <h4>Savings Report</h4>
+                        <p>Detailed savings analysis across all clients</p>
+                    </div>
+                    <div class="export-card" onclick="exportData('audit-history')">
+                        <i data-feather="clock" style="color: #f59e0b; margin-bottom: 1rem;"></i>
+                        <h4>Audit History</h4>
+                        <p>Complete audit trail and historical data</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div class="user-detail-modal" id="user-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-user-title">User Details</h2>
+                <button class="close-modal" onclick="closeUserModal()">&times;</button>
+            </div>
+            <div id="modal-user-content">
+                <!-- User details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Admin Authentication
+        const ADMIN_PASSWORD = 'Recekog5654'; // In production, this would be handled server-side
+        let isAuthenticated = false;
+
+        function checkAuthentication() {
+            const storedAuth = sessionStorage.getItem('admin_authenticated');
+            const authTime = sessionStorage.getItem('admin_auth_time');
+            
+            // Check if authenticated and session hasn't expired (4 hours)
+            if (storedAuth === 'true' && authTime && 
+                (Date.now() - parseInt(authTime)) < 4 * 60 * 60 * 1000) {
+                isAuthenticated = true;
+                return true;
+            }
+            
+            return false;
+        }
+
+        function promptForPassword() {
+            const password = prompt('Enter admin password to access dashboard:');
+            
+            if (password === ADMIN_PASSWORD) {
+                isAuthenticated = true;
+                sessionStorage.setItem('admin_authenticated', 'true');
+                sessionStorage.setItem('admin_auth_time', Date.now().toString());
+                return true;
+            } else if (password !== null) {
+                alert('Incorrect password. Access denied.');
+                window.location.href = '/';
+                return false;
+            } else {
+                // User cancelled
+                window.location.href = '/';
+                return false;
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('admin_authenticated');
+            sessionStorage.removeItem('admin_auth_time');
+            isAuthenticated = false;
+            window.location.href = '/';
+        }
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuthentication()) {
+                if (!promptForPassword()) {
+                    return;
+                }
+            }
+            
+            // Initialize dashboard if authenticated
+            initializeDashboard();
+        });
+
+        function initializeDashboard() {
+            loadDashboardData(); // Load real data instead of mock data
+            feather.replace();
+            
+            // Add logout button to header
+            const headerActions = document.querySelector('.header-actions');
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'btn btn-outline';
+            logoutBtn.innerHTML = '<i data-feather="log-out"></i> Logout';
+            logoutBtn.onclick = logout;
+            headerActions.appendChild(logoutBtn);
+            feather.replace();
+        }
+
+        // Sample data for demonstration
+        const flaggedUsersData = [
+            {
+                id: 'user_001',
+                email: 'john@techcorp.com',
+                company: 'TechCorp Inc',
+                flagReason: 'Suspicious Usage',
+                riskLevel: 'High',
+                lastActivity: '2024-06-22',
+                subscriptions: 25,
+                totalCost: 2500
+            },
+            {
+                id: 'user_002', 
+                email: 'sarah@startup.io',
+                company: 'Startup.io',
+                flagReason: 'Plan Abuse',
+                riskLevel: 'Medium',
+                lastActivity: '2024-06-21',
+                subscriptions: 8,
+                totalCost: 450
+            },
+            {
+                id: 'user_003',
+                email: 'mike@enterprise.com',
+                company: 'Enterprise Solutions',
+                flagReason: 'Fake Data',
+                riskLevel: 'Critical',
+                lastActivity: '2024-06-20',
+                subscriptions: 50,
+                totalCost: 5000
+            }
+        ];
+
+        const approvalsData = [
+            {
+                id: 'req_001',
+                user: 'john@techcorp.com',
+                action: 'Cancel',
+                tool: 'Adobe Creative Suite',
+                costImpact: '$600/mo',
+                status: 'pending',
+                requestDate: '2024-06-22'
+            },
+            {
+                id: 'req_002',
+                user: 'sarah@startup.io',
+                action: 'Downgrade',
+                tool: 'Slack Premium',
+                costImpact: '$240/mo',
+                status: 'pending',
+                requestDate: '2024-06-21'
+            }
+        ];
+
+        const clientData = [
+            {
+                company: 'TechCorp Inc',
+                plan: 'Enterprise',
+                users: 150,
+                auditsUsed: 45,
+                totalSavings: 15750,
+                status: 'Active'
+            },
+            {
+                company: 'Startup.io',
+                plan: 'Pro',
+                users: 25,
+                auditsUsed: 12,
+                totalSavings: 3200,
+                status: 'Active'
+            },
+            {
+                company: 'Enterprise Solutions',
+                plan: 'Enterprise',
+                users: 500,
+                auditsUsed: 78,
+                totalSavings: 45000,
+                status: 'Flagged'
+            }
+        ];
+
+        function switchTab(tabName) {
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            // Remove active from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected panel
+            document.getElementById(tabName + '-panel').classList.add('active');
+            
+            // Activate selected tab
+            event.target.classList.add('active');
+            
+            // Load data for the selected tab
+            loadTabData(tabName);
+        }
+
+        function loadTabData(tabName) {
+            switch(tabName) {
+                case 'flagged-users':
+                    loadFlaggedUsers();
+                    break;
+                case 'subscription-approvals':
+                    loadApprovalRequests();
+                    break;
+                case 'client-data':
+                    loadClientData();
+                    break;
+            }
+        }
+
+        // All data now loads from real database via API calls
+        // No more mock populate functions needed
+
+        function reviewUser(userId) {
+            const user = flaggedUsersData.find(u => u.id === userId);
+            if (!user) return;
+
+            document.getElementById('modal-user-title').textContent = `${user.email} - Risk Review`;
+            document.getElementById('modal-user-content').innerHTML = `
+                <div class="user-info-grid">
+                    <div class="info-section">
+                        <h4>User Information</h4>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Company:</strong> ${user.company}</p>
+                        <p><strong>Risk Level:</strong> ${user.riskLevel}</p>
+                        <p><strong>Flag Reason:</strong> ${user.flagReason}</p>
+                        <p><strong>Last Activity:</strong> ${new Date(user.lastActivity).toLocaleDateString()}</p>
+                    </div>
+                    <div class="info-section">
+                        <h4>Usage Statistics</h4>
+                        <p><strong>Total Subscriptions:</strong> ${user.subscriptions}</p>
+                        <p><strong>Monthly Cost:</strong> $${user.totalCost.toLocaleString()}</p>
+                        <p><strong>Audits This Month:</strong> 12</p>
+                        <p><strong>Account Age:</strong> 6 months</p>
+                    </div>
+                </div>
+                <div class="info-section">
+                    <h4>Recent Activity</h4>
+                    <div class="subscription-list">
+                        <div class="subscription-item">
+                            <span>Adobe Creative Suite - Cancel Request</span>
+                            <span class="status-badge status-pending">Pending</span>
+                        </div>
+                        <div class="subscription-item">
+                            <span>Slack Premium - Usage Analysis</span>
+                            <span class="status-badge status-active">Completed</span>
+                        </div>
+                        <div class="subscription-item">
+                            <span>Zoom Pro - Downgrade Request</span>
+                            <span class="status-badge status-pending">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('user-detail-modal').style.display = 'flex';
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-detail-modal').style.display = 'none';
+        }
+
+        function clearFlag(userId) {
+            showAlert(`Flag cleared for user ${userId}`, 'success');
+            // Remove from flagged users list
+            const index = flaggedUsersData.findIndex(u => u.id === userId);
+            if (index > -1) {
+                flaggedUsersData.splice(index, 1);
+                populateFlaggedUsers();
+            }
+        }
+
+        function suspendUser(userId) {
+            if (confirm('Are you sure you want to suspend this user?')) {
+                showAlert(`User ${userId} has been suspended`, 'warning');
+            }
+        }
+
+        function approveRequest(requestId) {
+            showAlert(`Request ${requestId} approved`, 'success');
+            // Update status in approvals data
+            const approval = approvalsData.find(a => a.id === requestId);
+            if (approval) {
+                approval.status = 'approved';
+                populateApprovals();
+            }
+        }
+
+        function rejectRequest(requestId) {
+            if (confirm('Are you sure you want to reject this request?')) {
+                showAlert(`Request ${requestId} rejected`, 'warning');
+                const approval = approvalsData.find(a => a.id === requestId);
+                if (approval) {
+                    approval.status = 'rejected';
+                    populateApprovals();
+                }
+            }
+        }
+
+        function viewClientDetails(companyName) {
+            alert(`Viewing detailed data for ${companyName} (In production, this would open a detailed view)`);
+        }
+
+        function exportClientData(companyName) {
+            showAlert(`Exporting data for ${companyName}`, 'info');
+        }
+
+        function exportData(type) {
+            const exportTypes = {
+                'flagged-users': 'Flagged Users Report',
+                'client-summary': 'Client Summary Report',
+                'savings-report': 'Savings Analysis Report',
+                'audit-history': 'Audit History Report'
+            };
+            
+            showAlert(`Generating ${exportTypes[type]}...`, 'info');
+            
+            // Simulate export process
+            setTimeout(() => {
+                showAlert(`${exportTypes[type]} ready for download`, 'success');
+            }, 2000);
+        }
+
+        function showAlert(message, type = 'info') {
+            const banner = document.getElementById('alert-banner');
+            const messageEl = document.getElementById('alert-message');
+            
+            messageEl.textContent = message;
+            banner.style.display = 'flex';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 5000);
+        }
+
+        function refreshDashboard() {
+            showAlert('Dashboard refreshed', 'success');
+            // Reload current tab data
+            const activeTab = document.querySelector('.tab-btn.active').onclick.toString().match(/switchTab\('(.+)'\)/);
+            if (activeTab) {
+                loadTabData(activeTab[1]);
+            }
+        }
+
+        function showExportPanel() {
+            switchTab('audit-exports');
+        }
+
+        // Session timeout warning
+        function checkSessionTimeout() {
+            const authTime = sessionStorage.getItem('admin_auth_time');
+            if (authTime && isAuthenticated) {
+                const timeElapsed = Date.now() - parseInt(authTime);
+                const timeRemaining = (4 * 60 * 60 * 1000) - timeElapsed;
+                
+                // Warn when 30 minutes left
+                if (timeRemaining < 30 * 60 * 1000 && timeRemaining > 29 * 60 * 1000) {
+                    showAlert('Session will expire in 30 minutes', 'warning');
+                }
+                
+                // Auto logout when expired
+                if (timeRemaining <= 0) {
+                    showAlert('Session expired. Please log in again.', 'warning');
+                    setTimeout(logout, 2000);
+                }
+            }
+        }
+
+        // Check session every minute
+        setInterval(checkSessionTimeout, 60000);
+
+        // Close modal when clicking outside
+        document.getElementById('user-detail-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeUserModal();
+            }
+        });
+    </script>
+</body>
+</html>
